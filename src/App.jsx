@@ -16,8 +16,9 @@ export default class App extends Component {
   addLetter = (letter) => {
     this.setState((preState) => ({
       ...preState,
+      prevLettersBefore: [...preState.prevLettersBefore, preState.lettersBefore],
       lettersBefore: [...preState.lettersBefore, { text: letter, classes: [] }],
-    }), () => console.table(this.state.lettersBefore));
+    }));
   };
 
   removeLetter = () => {
@@ -30,9 +31,22 @@ export default class App extends Component {
     }));
   };
 
+  undo() {
+    this.setState((preState) => ({
+      ...preState,
+      lettersBefore:
+        preState.prevLettersBefore[preState.prevLettersBefore.length - 1] || [],
+      prevLettersBefore: preState.prevLettersBefore.slice(
+        0,
+        preState.prevLettersBefore.length - 1
+      ),
+    }),() => console.log(this.state));
+  }
+
   addClassToLastLetter = (className) => {
     this.setState((preState) => ({
       ...preState,
+      prevLettersBefore: [...preState.prevLettersBefore, preState.lettersBefore],
       lettersBefore: preState.lettersBefore.map((item, index) =>
         index === preState.lettersBefore.length - 1
           ? { ...item, classes: [...item.classes, className] }
@@ -69,10 +83,11 @@ export default class App extends Component {
 
   handleLetter = (e) => {
     // handle special keys
-    console.log(e.key)
     const visibleAsciiDigestRgx = /[\x20-\x7E]/;
 
-    if (e.key === "Backspace") {
+    if (e.ctrlKey && e.key === "z") {
+      this.undo();
+    } else if (e.key === "Backspace") {
       this.removeLetter();
     } else if (e.key === "Enter") {
       this.addLetter("\n");
